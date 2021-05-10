@@ -1,0 +1,30 @@
+stages:
+
+  - name: generate
+    dependencies: [init]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        output_dir: '{workdir}'
+      step: {$ref: 'kubernetes/steps.yml#/generate'}
+
+  - name: multiply
+    dependencies: [generate]
+    scheduler:
+      scheduler_type: multistep-stage
+      parameters:
+        text_file: {step: generate, output: number_files}
+        output_dir: '{workdir}'
+      scatter:
+        method: zip
+        parameters: [text_file]
+      step: {$ref: 'kubernetes/steps.yml#/multiply'}
+
+  - name: sum
+    dependencies: [multiply]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        power_files: {stages: multiply, output: mult_files, flatten: true}
+        output_dir: '{workdir}'
+      step: {$ref: 'kubernetes/steps.yml#/sum'}

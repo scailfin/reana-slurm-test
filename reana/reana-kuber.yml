@@ -1,0 +1,12 @@
+version: 0.7.0
+inputs:
+  directories:
+    - kubernetes
+  parameters:
+    dummy: "dummy"
+workflow:
+  type: yadage
+  file: kubernetes/workflow.yml
+outputs:
+  files:
+    - sum.txt

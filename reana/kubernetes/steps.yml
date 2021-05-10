@@ -1,0 +1,64 @@
+########################################
+######### CONTAINER ENVIRONMENT ########
+########################################
+
+common_env: &common_env
+    environment_type: 'docker-encapsulated'
+    image: 'ubuntu'
+    imagetag: '20.10'
+
+
+########################################
+############ WORKFLOW STEPS ############
+########################################
+
+generate:
+  environment: *common_env
+  process:
+    process_type: string-interpolated-cmd
+    cmd:
+      SLEEP_SECS=$(( ( RANDOM % 10 ) + 1 )) &&
+      sleep $SLEEP_SECS &&
+      echo "1" > {output_dir}/number_1.txt &&
+      echo "2" > {output_dir}/number_2.txt &&
+      echo "3" > {output_dir}/number_3.txt &&
+      echo "4" > {output_dir}/number_4.txt &&
+      echo "5" > {output_dir}/number_5.txt &&
+      echo "6" > {output_dir}/number_6.txt
+  publisher:
+    publisher_type: 'fromglob-pub'
+    outputkey: number_files
+    globexpression: 'number_*.txt'
+
+multiply:
+  environment: *common_env
+  process:
+    process_type: string-interpolated-cmd
+    cmd:
+      SLEEP_SECS=$(( ( RANDOM % 10 ) + 1 )) &&
+      sleep $SLEEP_SECS &&
+      FILE_NUMBER=$(cat {text_file}) &&
+      MULT_NUMBER=$(( $FILE_NUMBER * $FILE_NUMBER )) &&
+      echo $MULT_NUMBER > {output_dir}/number_$FILE_NUMBER.txt
+  publisher:
+    publisher_type: 'fromglob-pub'
+    outputkey: mult_files
+    globexpression: 'number_*.txt'
+
+sum:
+  environment: *common_env
+  process:
+    process_type: string-interpolated-cmd
+    cmd:
+      SLEEP_SECS=$(( ( RANDOM % 10 ) + 1 )) &&
+      sleep $SLEEP_SECS &&
+      SUM=0 &&
+      for file in `echo {power_files}`; do
+        POW=$(cat $file)
+        SUM=$(( $SUM + $POW ));
+      done;
+      echo $SUM > {output_dir}/sum.txt
+  publisher:
+    publisher_type: 'fromglob-pub'
+    outputkey: sum_file
+    globexpression: 'sum.txt'
